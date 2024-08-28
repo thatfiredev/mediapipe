@@ -37,6 +37,8 @@ import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.google.mediapipe.examples.llminference.GemmaUiState.Companion.END_TURN
+import com.google.mediapipe.examples.llminference.GemmaUiState.Companion.START_TURN
 
 @Composable
 internal fun ChatRoute(
@@ -75,7 +77,16 @@ fun ChatScreen(
             reverseLayout = true
         ) {
             items(uiState.messages) { chat ->
-                ChatItem(chat)
+                val chatMessage = if (uiState is GemmaUiState) {
+                    // Strip the start_turn and end_turn tokens from Gemma messages
+                    chat.copy(
+                        message = chat.message.replace(START_TURN + chat.author + "\n", "")
+                            .replace(END_TURN, "")
+                    )
+                } else {
+                    chat
+                }
+                ChatItem(chatMessage)
             }
         }
 

@@ -35,7 +35,7 @@ class ChatUiState(
     messages: List<ChatMessage> = emptyList()
 ) : UiState {
     private val _messages: MutableList<ChatMessage> = messages.toMutableStateList()
-    override val messages: List<ChatMessage> = _messages.reversed()
+    override val messages: List<ChatMessage> = _messages
 
     // Prompt the model with the current chat history
     override val fullPrompt: String
@@ -43,7 +43,7 @@ class ChatUiState(
 
     override fun createLoadingMessage(): String {
         val chatMessage = ChatMessage(author = MODEL_PREFIX, isLoading = true)
-        _messages.add(chatMessage)
+        _messages.add(0, chatMessage)
         return chatMessage.id
     }
     
@@ -64,7 +64,7 @@ class ChatUiState(
             message = text,
             author = author
         )
-        _messages.add(chatMessage)
+        _messages.add(0, chatMessage)
         return chatMessage.id
     }
 }
@@ -75,19 +75,14 @@ class ChatUiState(
 class GemmaUiState(
     messages: List<ChatMessage> = emptyList()
 ) : UiState {
-    private val START_TURN = "<start_of_turn>"
-    private val END_TURN = "<end_of_turn>"
+    companion object {
+        val START_TURN = "<start_of_turn>"
+        val END_TURN = "<end_of_turn>"
+    }
 
     private val _messages: MutableList<ChatMessage> = messages.toMutableStateList()
     override val messages: List<ChatMessage>
         get() = _messages
-            .map {
-                // Remove the prefix and suffix before showing a message in the UI
-                it.copy(
-                    message = it.message.replace(START_TURN + it.author + "\n", "")
-                        .replace(END_TURN, "")
-                )
-            }.reversed()
 
     // Only using the last 4 messages to keep input + output short
     override val fullPrompt: String
@@ -95,7 +90,8 @@ class GemmaUiState(
 
     override fun createLoadingMessage(): String {
         val chatMessage = ChatMessage(author = MODEL_PREFIX, isLoading = true)
-        _messages.add(chatMessage)
+        // Add to the start of the list
+        _messages.add(0, chatMessage)
         return chatMessage.id
     }
 
@@ -122,7 +118,8 @@ class GemmaUiState(
             message = "$START_TURN$author\n$text$END_TURN",
             author = author
         )
-        _messages.add(chatMessage)
+        // Add to the start of the list
+        _messages.add(0, chatMessage)
         return chatMessage.id
     }
 }
